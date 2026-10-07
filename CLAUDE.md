@@ -38,6 +38,12 @@ When you hit an error:
 **3. Keep workflows current**
 Workflows should evolve as you learn. When you find better methods, discover constraints, or encounter recurring issues, update the workflow. That said, don't create or overwrite workflows without asking unless I explicitly tell you to. These are your instructions and need to be preserved and refined, not tossed after one use.
 
+**4. Use the knowledge store**
+Persistent memory lives in `knowledge/` (sources + notes), indexed by graphify into `graphify-out/`. SOP: `workflows/knowledge_base.md`.
+- Before a task: if `graphify-out/graph.json` exists, run `python tools/knowledge.py query "<topic>"` and check `graphify-out/GRAPH_REPORT.md` before grepping files blind.
+- After learning something durable (API quirk, decision, fix): `python tools/knowledge.py note --title ... --body ...`.
+- After adding notes/sources: `python tools/knowledge.py status`, then `/graphify . --update` if pending.
+
 ## The Self-Improvement Loop
 
 Every failure is a chance to make the system stronger:
@@ -45,7 +51,8 @@ Every failure is a chance to make the system stronger:
 2. Fix the tool
 3. Verify the fix works
 4. Update the workflow with the new approach
-5. Move on with a more robust system
+5. Save the learning to the knowledge store (`tools/knowledge.py note`)
+6. Move on with a more robust system
 
 This loop is how the framework improves over time.
 
@@ -60,6 +67,8 @@ This loop is how the framework improves over time.
 .tmp/           # Temporary files (scraped data, intermediate exports). Regenerated as needed.
 tools/          # Python scripts for deterministic execution
 workflows/      # Markdown SOPs defining what to do and how
+knowledge/      # Persistent knowledge: sources/ (raw inputs) + notes/ (learnings)
+graphify-out/   # Knowledge graph (graph.json, GRAPH_REPORT.md, graph.html), derived from repo
 .env            # API keys and environment variables (NEVER store secrets anywhere else)
 credentials.json, token.json  # Google OAuth (gitignored)
 ```
