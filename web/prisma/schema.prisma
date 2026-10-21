@@ -1,0 +1,21 @@
+// Prisma schema — KARUNIA Management Dashboard
+// Tahap 2 (integrasi data): model domain (Department, Dashboard, dsb.)
+// akan ditambahkan di sini. Untuk saat ini hanya konfigurasi dasar agar
+// project siap terhubung ke PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Contoh model yang akan diaktifkan pada tahap 2:
+// model Department {
+//   id        String   @id @default(cuid())
+//   slug      String   @unique
+//   name      String
+//   ...
+// }
