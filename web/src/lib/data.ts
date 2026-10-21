@@ -1,0 +1,687 @@
+import {
+  Users,
+  HardHat,
+  Building2,
+  Factory,
+  Wrench,
+  Package,
+  Landmark,
+  Cog,
+  MonitorSmartphone,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
+import type {
+  ActivityEvent,
+  AttendanceRecord,
+  DashboardItem,
+  Department,
+  FavoriteEntry,
+  Kpi,
+  RecentEntry,
+} from "@/lib/types";
+
+/**
+ * Icon lookup map — used by Client Components to resolve icon components from iconName strings.
+ * Icons must NOT be stored directly in data objects because LucideIcon (a function)
+ * cannot be serialized when passed from Server Components to Client Components.
+ */
+export const departmentIconMap: Record<string, LucideIcon> = {
+  Users,
+  HardHat,
+  Building2,
+  Factory,
+  Wrench,
+  Package,
+  Landmark,
+  Cog,
+  MonitorSmartphone,
+};
+
+export const kpiIconMap: Record<string, LucideIcon> = {
+  Users,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Timer,
+};
+
+export const departments: Department[] = [
+  {
+    slug: "human-capital",
+    name: "Human Capital",
+    description:
+      "Manajemen karyawan, absensi, payroll, rekrutmen, dan pengembangan SDM.",
+    dashboardCount: 6,
+    reportCount: 12,
+    iconName: "Users",
+  },
+  {
+    slug: "hse",
+    name: "HSE",
+    description: "Keselamatan kerja, lingkungan, dan kesehatan.",
+    dashboardCount: 5,
+    reportCount: 10,
+    iconName: "HardHat",
+  },
+  {
+    slug: "general-affair",
+    name: "General Affair",
+    description: "Sarana prasarana, aset, dan layanan umum.",
+    dashboardCount: 4,
+    reportCount: 8,
+    iconName: "Building2",
+  },
+  {
+    slug: "operation",
+    name: "Operation",
+    description: "Produksi, fleet, dan aktivitas operasional.",
+    dashboardCount: 7,
+    reportCount: 15,
+    iconName: "Factory",
+  },
+  {
+    slug: "engineering",
+    name: "Engineering",
+    description: "Maintenance, reliability, dan proyek teknik.",
+    dashboardCount: 5,
+    reportCount: 11,
+    iconName: "Wrench",
+  },
+  {
+    slug: "supply-chain-management",
+    name: "Supply Chain Management",
+    description: "Pengadaan, inventory, vendor, dan logistik.",
+    dashboardCount: 6,
+    reportCount: 14,
+    iconName: "Package",
+  },
+  {
+    slug: "finance-accounting-tax",
+    name: "Finance, Accounting & Tax",
+    description: "Keuangan, akuntansi, pajak, dan budgeting.",
+    dashboardCount: 8,
+    reportCount: 20,
+    iconName: "Landmark",
+  },
+  {
+    slug: "plant",
+    name: "Plant",
+    description: "Monitoring plant, utilitas, dan fasilitas produksi.",
+    dashboardCount: 5,
+    reportCount: 12,
+    iconName: "Cog",
+  },
+  {
+    slug: "it-digitalization",
+    name: "IT & Digitalization",
+    description: "Infrastruktur IT, sistem, dan transformasi digital.",
+    dashboardCount: 4,
+    reportCount: 8,
+    iconName: "MonitorSmartphone",
+  },
+];
+
+export const dashboardItems: DashboardItem[] = [
+  // Human Capital
+  {
+    slug: "employee-overview",
+    title: "Employee Overview",
+    category: "Dashboard",
+    description:
+      "Ringkasan data karyawan, pertumbuhan, dan komposisi organisasi.",
+    departmentSlug: "human-capital",
+    favorite: false,
+  },
+  {
+    slug: "manpower-monitoring",
+    title: "Manpower Monitoring",
+    category: "Monitoring",
+    description: "Monitoring jumlah karyawan aktif, kontrak, dan pergerakan.",
+    departmentSlug: "human-capital",
+    favorite: false,
+  },
+  {
+    slug: "attendance-overtime",
+    title: "Attendance & Overtime Monitoring",
+    category: "Monitoring",
+    description:
+      "Monitoring kehadiran, keterlambatan, dan overtime karyawan.",
+    departmentSlug: "human-capital",
+    favorite: true,
+  },
+  {
+    slug: "leave-absence-report",
+    title: "Leave & Absence Report",
+    category: "Laporan",
+    description: "Laporan cuti, izin, dan ketidakhadiran karyawan.",
+    departmentSlug: "human-capital",
+    favorite: false,
+  },
+  {
+    slug: "recruitment-tracking",
+    title: "Recruitment Tracking",
+    category: "Monitoring",
+    description: "Monitoring proses rekrutmen dan status kandidat.",
+    departmentSlug: "human-capital",
+    favorite: false,
+  },
+  {
+    slug: "employee-movement",
+    title: "Employee Movement",
+    category: "Laporan",
+    description: "Laporan mutasi, promosi, dan perpindahan karyawan.",
+    departmentSlug: "human-capital",
+    favorite: false,
+  },
+  // HSE
+  {
+    slug: "hse-kpi-safety",
+    title: "KPI Safety",
+    category: "Dashboard",
+    description: "Ringkasan indikator keselamatan kerja dan lingkungan.",
+    departmentSlug: "hse",
+    favorite: false,
+  },
+  {
+    slug: "safety-observation",
+    title: "Safety Observation",
+    category: "Monitoring",
+    description: "Monitoring observasi keselamatan di lapangan.",
+    departmentSlug: "hse",
+    favorite: false,
+  },
+  {
+    slug: "hse-incident-report",
+    title: "Incident Report",
+    category: "Laporan",
+    description: "Laporan insiden, near miss, dan tindak lanjut.",
+    departmentSlug: "hse",
+    favorite: false,
+  },
+  // General Affair
+  {
+    slug: "facility-maintenance",
+    title: "Facility Maintenance",
+    category: "Dashboard",
+    description: "Ringkasan perawatan sarana dan prasarana.",
+    departmentSlug: "general-affair",
+    favorite: false,
+  },
+  {
+    slug: "asset-tracking",
+    title: "Asset Tracking",
+    category: "Monitoring",
+    description: "Monitoring lokasi dan kondisi aset perusahaan.",
+    departmentSlug: "general-affair",
+    favorite: false,
+  },
+  {
+    slug: "vehicle-management",
+    title: "Vehicle Management",
+    category: "Laporan",
+    description: "Laporan pemakaian dan perawatan kendaraan.",
+    departmentSlug: "general-affair",
+    favorite: false,
+  },
+  // Operation
+  {
+    slug: "daily-production-monitoring",
+    title: "Daily Production Monitoring",
+    category: "Dashboard",
+    description: "Monitoring produksi harian dan capaian target.",
+    departmentSlug: "operation",
+    favorite: true,
+  },
+  {
+    slug: "operational-performance",
+    title: "Operational Performance",
+    category: "Dashboard",
+    description: "Kinerja operasional keseluruhan unit produksi.",
+    departmentSlug: "operation",
+    favorite: false,
+  },
+  {
+    slug: "fleet-monitoring",
+    title: "Fleet Monitoring",
+    category: "Monitoring",
+    description: "Monitoring posisi dan utilisasi armada.",
+    departmentSlug: "operation",
+    favorite: false,
+  },
+  // Engineering
+  {
+    slug: "reliability-overview",
+    title: "Reliability Overview",
+    category: "Dashboard",
+    description: "Ringkasan keandalan dan downtime peralatan.",
+    departmentSlug: "engineering",
+    favorite: false,
+  },
+  {
+    slug: "maintenance-monitoring",
+    title: "Maintenance Monitoring",
+    category: "Monitoring",
+    description: "Monitoring jadwal dan progres perawatan.",
+    departmentSlug: "engineering",
+    favorite: false,
+  },
+  {
+    slug: "project-progress",
+    title: "Project Progress",
+    category: "Laporan",
+    description: "Laporan progres proyek teknik.",
+    departmentSlug: "engineering",
+    favorite: false,
+  },
+  // Supply Chain Management
+  {
+    slug: "inventory-monitoring",
+    title: "Inventory Monitoring",
+    category: "Dashboard",
+    description: "Monitoring stok material dan pergerakan inventory.",
+    departmentSlug: "supply-chain-management",
+    favorite: true,
+  },
+  {
+    slug: "procurement-tracking",
+    title: "Procurement Tracking",
+    category: "Monitoring",
+    description: "Monitoring status pengadaan dan purchase order.",
+    departmentSlug: "supply-chain-management",
+    favorite: false,
+  },
+  {
+    slug: "vendor-performance",
+    title: "Vendor Performance",
+    category: "Laporan",
+    description: "Laporan performa vendor dan supplier.",
+    departmentSlug: "supply-chain-management",
+    favorite: false,
+  },
+  // Finance, Accounting & Tax
+  {
+    slug: "financial-overview",
+    title: "Financial Overview",
+    category: "Dashboard",
+    description: "Ringkasan keuangan, arus kas, dan profitabilitas.",
+    departmentSlug: "finance-accounting-tax",
+    favorite: true,
+  },
+  {
+    slug: "budget-vs-actual",
+    title: "Budget vs Actual",
+    category: "Dashboard",
+    description: "Perbandingan realisasi anggaran terhadap budget.",
+    departmentSlug: "finance-accounting-tax",
+    favorite: false,
+  },
+  {
+    slug: "tax-compliance",
+    title: "Tax Compliance",
+    category: "Laporan",
+    description: "Laporan kepatuhan perpajakan perusahaan.",
+    departmentSlug: "finance-accounting-tax",
+    favorite: false,
+  },
+  // Plant
+  {
+    slug: "plant-performance",
+    title: "Plant Performance",
+    category: "Dashboard",
+    description: "Kinerja dan efisiensi plant produksi.",
+    departmentSlug: "plant",
+    favorite: false,
+  },
+  {
+    slug: "utility-monitoring",
+    title: "Utility Monitoring",
+    category: "Monitoring",
+    description: "Monitoring utilitas, listrik, dan air.",
+    departmentSlug: "plant",
+    favorite: false,
+  },
+  {
+    slug: "production-facility",
+    title: "Production Facility",
+    category: "Laporan",
+    description: "Laporan kondisi fasilitas produksi.",
+    departmentSlug: "plant",
+    favorite: false,
+  },
+  // IT & Digitalization
+  {
+    slug: "system-health",
+    title: "System Health",
+    category: "Dashboard",
+    description: "Ringkasan kesehatan sistem dan layanan IT.",
+    departmentSlug: "it-digitalization",
+    favorite: false,
+  },
+  {
+    slug: "infrastructure-monitoring",
+    title: "Infrastructure Monitoring",
+    category: "Monitoring",
+    description: "Monitoring infrastruktur server, jaringan, dan keamanan.",
+    departmentSlug: "it-digitalization",
+    favorite: false,
+  },
+  {
+    slug: "digital-transformation",
+    title: "Digital Transformation",
+    category: "Laporan",
+    description: "Laporan progres transformasi digital.",
+    departmentSlug: "it-digitalization",
+    favorite: false,
+  },
+];
+
+export const overviewStats = {
+  totalDepartments: 9,
+  totalDashboards: 48,
+  totalReports: 126,
+  lastUpdated: "16 Okt 2026 14:57:32 WIB",
+};
+
+export const activityEvents: ActivityEvent[] = [
+  {
+    id: 1,
+    type: "success",
+    label: "Sinkronisasi data ERP berhasil",
+    time: "16/10/2026 14:57",
+  },
+  {
+    id: 2,
+    type: "warning",
+    label: "Update data produksi",
+    time: "16/10/2026 14:45",
+  },
+  {
+    id: 3,
+    type: "success",
+    label: "Proses laporan keuangan selesai",
+    time: "16/10/2026 14:30",
+  },
+  {
+    id: 4,
+    type: "error",
+    label: "Alert stok minimum material",
+    time: "16/10/2026 14:15",
+  },
+  {
+    id: 5,
+    type: "success",
+    label: "Backup database berhasil",
+    time: "16/10/2026 13:50",
+  },
+];
+
+export const favoriteEntries: FavoriteEntry[] = [
+  { slug: "daily-production-monitoring", departmentSlug: "operation" },
+  { slug: "financial-overview", departmentSlug: "finance-accounting-tax" },
+  { slug: "attendance-overtime", departmentSlug: "human-capital" },
+  { slug: "inventory-monitoring", departmentSlug: "supply-chain-management" },
+];
+
+export const recentEntries: RecentEntry[] = [
+  { slug: "manpower-monitoring", departmentSlug: "human-capital", time: "5 menit yang lalu" },
+  { slug: "operational-performance", departmentSlug: "operation", time: "32 menit yang lalu" },
+  { slug: "budget-vs-actual", departmentSlug: "finance-accounting-tax", time: "1 jam yang lalu" },
+  { slug: "hse-incident-report", departmentSlug: "hse", time: "2 jam yang lalu" },
+];
+
+export const attendanceKpis: Kpi[] = [
+  {
+    key: "total",
+    label: "Total Karyawan",
+    value: "1.248",
+    change: "2,5% dari bulan lalu",
+    direction: "up",
+    tone: "green",
+    iconName: "Users",
+  },
+  {
+    key: "hadir",
+    label: "Hadir",
+    value: "1.102",
+    change: "3,1% dari kemarin",
+    direction: "up",
+    tone: "green",
+    iconName: "CheckCircle2",
+  },
+  {
+    key: "terlambat",
+    label: "Terlambat",
+    value: "86",
+    change: "0,8% dari kemarin",
+    direction: "up",
+    tone: "amber",
+    iconName: "Clock",
+  },
+  {
+    key: "tidak-hadir",
+    label: "Tidak Hadir",
+    value: "42",
+    change: "1,2% dari kemarin",
+    direction: "up",
+    tone: "red",
+    iconName: "XCircle",
+  },
+  {
+    key: "overtime",
+    label: "Overtime",
+    value: "276",
+    change: "12% dari minggu lalu",
+    direction: "up",
+    tone: "purple",
+    iconName: "Timer",
+  },
+];
+
+export const attendanceTrend = {
+  labels: ["10 Okt", "11 Okt", "12 Okt", "13 Okt", "14 Okt", "15 Okt", "16 Okt"],
+  hadir: [1085, 1102, 1078, 1120, 1096, 1110, 1102],
+  terlambat: [95, 88, 102, 76, 90, 82, 86],
+  tidakHadir: [40, 38, 45, 35, 42, 39, 42],
+};
+
+export const attendanceDistribution = {
+  total: 1248,
+  segments: [
+    { label: "Hadir", value: 1102, percent: "88,3%" },
+    { label: "Terlambat", value: 86, percent: "6,9%" },
+    { label: "Tidak Hadir", value: 42, percent: "3,4%" },
+    { label: "Cuti / Izin", value: 18, percent: "1,4%" },
+  ],
+};
+
+export const attendanceRecords: AttendanceRecord[] = [
+  {
+    id: 1,
+    nik: "25050856",
+    name: "Hengki Agung Prayoga",
+    department: "IT & Digitalization",
+    area: "HOI-BPN",
+    location: "Pantry Sepinggan",
+    shift: 1,
+    checkIn: "16/10/2026 07:58",
+    checkOut: "16/10/2026 17:10",
+    status: "Hadir",
+    duration: "9 jam 12 menit",
+    overtime: "-",
+  },
+  {
+    id: 2,
+    nik: "25050123",
+    name: "Dimas Pratama",
+    department: "Engineering",
+    area: "Site A",
+    location: "Workshop",
+    shift: 1,
+    checkIn: "16/10/2026 08:12",
+    checkOut: "16/10/2026 17:05",
+    status: "Terlambat",
+    duration: "8 jam 53 menit",
+    overtime: "30 mnt",
+  },
+  {
+    id: 3,
+    nik: "25050234",
+    name: "Nurul Aini",
+    department: "Human Capital",
+    area: "HOI-BPN",
+    location: "Main Office",
+    shift: 1,
+    checkIn: "16/10/2026 07:55",
+    checkOut: "16/10/2026 17:20",
+    status: "Hadir",
+    duration: "9 jam 25 menit",
+    overtime: "1 jam",
+  },
+  {
+    id: 4,
+    nik: "25050312",
+    name: "Dani Setiawan",
+    department: "Operation",
+    area: "Site B",
+    location: "Pit 1",
+    shift: 2,
+    checkIn: "16/10/2026 14:02",
+    checkOut: "-",
+    status: "Tidak Hadir",
+    duration: "-",
+    overtime: "-",
+  },
+  {
+    id: 5,
+    nik: "25050456",
+    name: "Anisya Putri",
+    department: "Finance",
+    area: "HOI-BPN",
+    location: "Main Office",
+    shift: 1,
+    checkIn: "16/10/2026 08:05",
+    checkOut: "16/10/2026 17:01",
+    status: "Hadir",
+    duration: "8 jam 56 menit",
+    overtime: "-",
+  },
+  {
+    id: 6,
+    nik: "25050567",
+    name: "Rizky Ramadhan",
+    department: "Supply Chain Management",
+    area: "HOI-BPN",
+    location: "Gudang 2",
+    shift: 1,
+    checkIn: "16/10/2026 08:20",
+    checkOut: "16/10/2026 17:15",
+    status: "Terlambat",
+    duration: "8 jam 55 menit",
+    overtime: "45 mnt",
+  },
+  {
+    id: 7,
+    nik: "25050678",
+    name: "Sari Wulandari",
+    department: "Human Capital",
+    area: "HOI-BPN",
+    location: "Main Office",
+    shift: 1,
+    checkIn: "16/10/2026 07:50",
+    checkOut: "16/10/2026 17:25",
+    status: "Hadir",
+    duration: "9 jam 35 menit",
+    overtime: "1,5 jam",
+  },
+  {
+    id: 8,
+    nik: "25050789",
+    name: "Budi Santoso",
+    department: "HSE",
+    area: "Site A",
+    location: "Lapangan",
+    shift: 2,
+    checkIn: "16/10/2026 13:55",
+    checkOut: "-",
+    status: "Tidak Hadir",
+    duration: "-",
+    overtime: "-",
+  },
+  {
+    id: 9,
+    nik: "25050890",
+    name: "Maya Kartika",
+    department: "Finance",
+    area: "HOI-BPN",
+    location: "Main Office",
+    shift: 1,
+    checkIn: "16/10/2026 07:59",
+    checkOut: "16/10/2026 17:08",
+    status: "Hadir",
+    duration: "9 jam 9 menit",
+    overtime: "-",
+  },
+  {
+    id: 10,
+    nik: "25050901",
+    name: "Andi Firmansyah",
+    department: "Engineering",
+    area: "Site B",
+    location: "Workshop",
+    shift: 1,
+    checkIn: "16/10/2026 08:30",
+    checkOut: "16/10/2026 17:00",
+    status: "Terlambat",
+    duration: "8 jam 30 menit",
+    overtime: "20 mnt",
+  },
+  {
+    id: 11,
+    nik: "25051012",
+    name: "Lestari Dewi",
+    department: "IT & Digitalization",
+    area: "HOI-BPN",
+    location: "Main Office",
+    shift: 1,
+    checkIn: "16/10/2026 07:57",
+    checkOut: "16/10/2026 17:12",
+    status: "Hadir",
+    duration: "9 jam 15 menit",
+    overtime: "-",
+  },
+  {
+    id: 12,
+    nik: "25051123",
+    name: "Joko Prasetyo",
+    department: "Operation",
+    area: "Site A",
+    location: "Pit 2",
+    shift: 2,
+    checkIn: "16/10/2026 14:10",
+    checkOut: "-",
+    status: "Tidak Hadir",
+    duration: "-",
+    overtime: "-",
+  },
+];
+
+export function getDepartment(slug: string): Department | undefined {
+  return departments.find((d) => d.slug === slug);
+}
+
+export function getItemsByDepartment(slug: string): DashboardItem[] {
+  return dashboardItems.filter((i) => i.departmentSlug === slug);
+}
+
+export function getItem(slug: string): DashboardItem | undefined {
+  return dashboardItems.find((i) => i.slug === slug);
+}
+
+export function getDepartmentOfItem(slug: string): Department | undefined {
+  const item = getItem(slug);
+  return item ? getDepartment(item.departmentSlug) : undefined;
+}
