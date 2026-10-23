@@ -1,21 +1,62 @@
 // Prisma schema — KARUNIA Management Dashboard
-// Tahap 2 (integrasi data): model domain (Department, Dashboard, dsb.)
-// akan ditambahkan di sini. Untuk saat ini hanya konfigurasi dasar agar
-// project siap terhubung ke PostgreSQL.
+// Koneksi (URL) diatur di prisma.config.ts, bukan di sini (Prisma 7).
+//
+// PENTING: database ini dipakai bersama aplikasi lain (±1.600 tabel di luar
+// schema ini). JANGAN jalankan `prisma migrate dev`, `prisma db push`, atau
+// `prisma db pull` — migrate/push akan mendeteksi drift dan bisa me-reset /
+// drop tabel lain, pull menimpa file ini dengan seluruh tabel.
+//
+// Alur perubahan tabel milik dashboard:
+//   1. Tulis SQL di prisma/migrations/<timestamp>_<nama>/migration.sql
+//   2. Update model di file ini agar sesuai
+//   3. `npm run db:deploy` (dev & production) lalu `npm run db:generate`
+//
+// Tabel legacy (ms_employees, tr_absens, tr_overtime, ...) dibaca lewat raw SQL
+// di src/lib/queries/, tidak dimodelkan di sini.
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// Contoh model yang akan diaktifkan pada tahap 2:
-// model Department {
-//   id        String   @id @default(cuid())
-//   slug      String   @unique
-//   name      String
-//   ...
-// }
+/// Tabel legacy (read-only dari dashboard): group departemen.
+model GroupDepartment {
+  id          Int       @id @default(autoincrement()) @db.SmallInt
+  name        String?   @db.VarChar
+  description String?
+  orderNumber Int?      @map("order_number") @db.SmallInt
+  createdAt   DateTime? @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @map("updated_at") @db.Timestamp(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamp(6)
+
+  features DashboardFeature[]
+
+  @@map("ms_group_department")
+}
+
+/// Milik dashboard: daftar fitur (dashboard/monitoring/laporan) per group departemen.
+model DashboardFeature {
+  id                Int       @id @default(autoincrement())
+  groupDepartmentId Int       @map("group_department_id") @db.SmallInt
+  slug              String    @db.VarChar(100)
+  title             String    @db.VarChar(150)
+  category          String    @db.VarChar(20)
+  description       String?
+  /// Kunci komponen React yang merender fitur ini (mis. "attendance-overtime").
+  /// NULL = belum diimplementasi, tampil sebagai placeholder.
+  componentKey      String?   @map("component_key") @db.VarChar(50)
+  orderNumber       Int       @default(0) @map("order_number") @db.SmallInt
+  active            Boolean   @default(true)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamp(6)
+
+  group GroupDepartment @relation(fields: [groupDepartmentId], references: [id])
+
+  @@unique([groupDepartmentId, slug])
+  @@map("ms_dashboard_features")
+}
