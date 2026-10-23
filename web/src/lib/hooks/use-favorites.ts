@@ -1,51 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { createLocalStorageStore, useHydrated } from "@/lib/hooks/local-storage-store";
 
-const STORAGE_KEY = "karunia_favorites";
+// v2: key = "<groupSlug>/<featureSlug>" (slug fitur unik per group, bukan global)
+const EMPTY: string[] = [];
+const store = createLocalStorageStore<string[]>(
+  "karunia_favorites_v2",
+  (raw) => (Array.isArray(raw) ? raw.filter((v) => typeof v === "string") : EMPTY),
+  EMPTY,
+);
+
+export function featureKey(departmentSlug: string, slug: string): string {
+  return `${departmentSlug}/${slug}`;
+}
 
 export function useFavorites() {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [hydrated, setHydrated] = useState(false);
+  const favorites = store.useValue();
+  const hydrated = useHydrated();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: string[] = JSON.parse(stored);
-        setFavorites(new Set(parsed));
-      }
-    } catch {
-      // ignore parse errors
-    }
-    setHydrated(true);
-  }, []);
-
-  // Persist to localStorage whenever favorites change (after hydration)
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...favorites]));
-    } catch {
-      // ignore storage errors
-    }
-  }, [favorites, hydrated]);
-
-  const toggle = useCallback((slug: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(slug)) {
-        next.delete(slug);
-      } else {
-        next.add(slug);
-      }
-      return next;
-    });
+  const toggle = useCallback((key: string) => {
+    const current = store.getSnapshot();
+    store.write(
+      current.includes(key) ? current.filter((k) => k !== key) : [...current, key],
+    );
   }, []);
 
   const isFavorite = useCallback(
-    (slug: string) => favorites.has(slug),
+    (key: string) => favorites.includes(key),
     [favorites],
   );
 

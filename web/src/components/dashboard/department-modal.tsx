@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { getItemsByDepartment, departmentIconMap } from "@/lib/data";
-import type { Department } from "@/lib/types";
+import { departmentIconMap } from "@/lib/icons";
+import { featureKey, useFavorites } from "@/lib/hooks/use-favorites";
+import type { DashboardItem, Department } from "@/lib/types";
 import { DashboardItemCard } from "@/components/dashboard/dashboard-item-card";
 
 const tabs = [
@@ -25,19 +26,22 @@ const tabs = [
 
 type Props = {
   department: Department | null;
+  /** Fitur milik group ini */
+  items: DashboardItem[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function DepartmentModal({ department, open, onOpenChange }: Props) {
+export function DepartmentModal({ department, items: allItems, open, onOpenChange }: Props) {
   const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
+  const { isFavorite } = useFavorites();
 
   const items = useMemo(() => {
     if (!department) return [];
-    let list = getItemsByDepartment(department.slug);
+    let list = allItems;
     if (tab === "favorite") {
-      list = list.filter((i) => i.favorite);
+      list = list.filter((i) => isFavorite(featureKey(i.departmentSlug, i.slug)));
     } else if (tab !== "all") {
       list = list.filter((i) => i.category === tab);
     }
@@ -50,13 +54,13 @@ export function DepartmentModal({ department, open, onOpenChange }: Props) {
       );
     }
     return list;
-  }, [department, tab, query]);
+  }, [department, allItems, tab, query, isFavorite]);
 
   const Icon = department?.iconName ? departmentIconMap[department.iconName] : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[85vh] w-[min(94vw,1100px)] max-w-none overflow-y-auto sm:max-w-none">
         {department && (
           <>
             <DialogHeader>
@@ -102,7 +106,7 @@ export function DepartmentModal({ department, open, onOpenChange }: Props) {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 {items.map((item) => (
-                  <DashboardItemCard key={item.slug} item={item} />
+                  <DashboardItemCard key={item.id} item={item} />
                 ))}
               </div>
 
@@ -115,14 +119,14 @@ export function DepartmentModal({ department, open, onOpenChange }: Props) {
               <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                 <p className="text-xs text-muted-foreground">
                   Menampilkan {items.length} dari{" "}
-                  {getItemsByDepartment(department.slug).length} dashboard/laporan
+                  {allItems.length} dashboard/laporan
                 </p>
                 <Link
                   href={`/dashboard/${department.slug}`}
                   onClick={() => onOpenChange(false)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
                 >
-                  Lihat Overview Departemen
+                  Lihat Overview Group
                 </Link>
               </div>
             </div>

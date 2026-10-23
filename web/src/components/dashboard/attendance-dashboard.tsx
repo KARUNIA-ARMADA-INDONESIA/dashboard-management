@@ -1,7 +1,5 @@
-"use client";
-
-import { useAttendanceFilter } from "@/lib/hooks/use-attendance-filter";
-import { attendanceKpis } from "@/lib/data";
+import { getAttendanceDashboard } from "@/lib/queries/attendance";
+import { toSearchParams, type AttendanceFilters } from "@/lib/attendance-filters";
 import type { DashboardItem, Department } from "@/lib/types";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { FilterBar } from "@/components/dashboard/filter-bar";
@@ -13,43 +11,55 @@ import { AttendanceTable } from "@/components/dashboard/attendance-table";
 type Props = {
   department: Department;
   item: DashboardItem;
+  filters: AttendanceFilters;
 };
 
-export function AttendanceDashboard({ department, item }: Props) {
-  const { pendingFilters, setPending, apply, reset, filteredRecords } =
-    useAttendanceFilter();
+export async function AttendanceDashboard({ department, item, filters }: Props) {
+  const data = await getAttendanceDashboard(filters);
+
+  const exportParams = toSearchParams({ ...filters, page: 1 });
+  const exportHref = `/api/attendance/export?${exportParams}`;
+  // Reset state FilterBar ketika filter di URL berubah (selain halaman).
+  exportParams.delete("pageSize");
+  const filterKey = exportParams.toString();
+  const period =
+    filters.from === filters.to ? filters.from : `${filters.from} s/d ${filters.to}`;
 
   return (
     <div className="space-y-4">
       <DashboardHeader
         department={department}
         item={item}
-        lastUpdated="16 Okt 2026 14:57:32 WIB"
+        lastUpdated={data.lastUpdated}
+        exportHref={exportHref}
       />
 
-      <FilterBar
-        filters={pendingFilters}
-        onSet={setPending}
-        onApply={apply}
-        onReset={reset}
-      />
+      <FilterBar key={filterKey} filters={filters} options={data.options} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {attendanceKpis.map((kpi) => (
+        {data.kpis.map((kpi) => (
           <KpiCard key={kpi.key} kpi={kpi} />
         ))}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border bg-card p-4">
-          <AttendanceTrendChart />
+          <AttendanceTrendChart trend={data.trend} />
         </div>
         <div className="rounded-xl border bg-card p-4">
-          <AttendanceDonutChart />
+          <AttendanceDonutChart
+            distribution={data.distribution}
+            title={`Distribusi Kehadiran (${period})`}
+          />
         </div>
       </div>
 
-      <AttendanceTable records={filteredRecords} />
+      <AttendanceTable
+        records={data.rows}
+        total={data.totalRows}
+        filters={filters}
+        exportHref={exportHref}
+      />
     </div>
   );
 }

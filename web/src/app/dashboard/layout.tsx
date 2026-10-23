@@ -1,5 +1,4 @@
-import { DashboardShell } from "@/components/layout/dashboard-shell";
-
+// Semua halaman dashboard membaca database setiap request.
 export const dynamic = "force-dynamic";
 
 export default function DashboardLayout({
@@ -7,5 +6,5 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardShell>{children}</DashboardShell>;
+  return <main className="flex flex-1 flex-col">{children}</main>;
 }

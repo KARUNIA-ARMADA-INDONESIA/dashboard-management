@@ -1,6 +1,6 @@
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { kpiIconMap } from "@/lib/data";
+import { kpiIconMap } from "@/lib/icons";
 import type { Kpi } from "@/lib/types";
 
 const toneClass: Record<Kpi["tone"], string> = {
@@ -12,7 +12,12 @@ const toneClass: Record<Kpi["tone"], string> = {
 
 export function KpiCard({ kpi }: { kpi: Kpi }) {
   const Icon = kpiIconMap[kpi.iconName];
-  const up = kpi.direction === "up";
+  const DirectionIcon =
+    kpi.direction === "up"
+      ? ArrowUpRight
+      : kpi.direction === "down"
+        ? ArrowDownRight
+        : ArrowRight;
 
   return (
     <div className="rounded-xl border bg-card p-4">
@@ -29,14 +34,12 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
       <p
         className={cn(
           "mt-1 flex items-center gap-1 text-xs font-medium",
-          up ? "text-emerald-600" : "text-red-600",
+          kpi.direction === "up" && "text-emerald-600",
+          kpi.direction === "down" && "text-red-600",
+          kpi.direction === "flat" && "text-muted-foreground",
         )}
       >
-        {up ? (
-          <ArrowUpRight className="h-3.5 w-3.5" />
-        ) : (
-          <ArrowDownRight className="h-3.5 w-3.5" />
-        )}
+        <DirectionIcon className="h-3.5 w-3.5" />
         {kpi.change}
       </p>
     </div>

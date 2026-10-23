@@ -1,6 +1,8 @@
 "use client";
 
-import { RotateCcw, Search } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Loader2, RotateCcw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,106 +13,154 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { AttendanceFilters } from "@/lib/hooks/use-attendance-filter";
+import {
+  ATTENDANCE_STATUSES,
+  MAX_RANGE_DAYS,
+  defaultFilters,
+  toSearchParams,
+  type AttendanceFilters,
+} from "@/lib/attendance-filters";
+import type { AttendanceFilterOptions, SelectOption } from "@/lib/types";
 
-const SELECT_FIELDS: {
-  key: keyof AttendanceFilters;
-  label: string;
-  placeholder: string;
-  options: string[];
-}[] = [
-  {
-    key: "area",
-    label: "Area",
-    placeholder: "-- Semua Area --",
-    options: ["HOI-BPN", "Site A", "Site B"],
-  },
-  {
-    key: "location",
-    label: "Lokasi",
-    placeholder: "-- Semua Lokasi --",
-    options: [
-      "Main Office",
-      "Workshop",
-      "Pit 1",
-      "Pit 2",
-      "Pantry Sepinggan",
-      "Gudang 2",
-      "Lapangan",
-    ],
-  },
-  {
-    key: "department",
-    label: "Departemen",
-    placeholder: "-- Semua Departemen --",
-    options: [
-      "Human Capital",
-      "Engineering",
-      "Operation",
-      "Finance",
-      "HSE",
-      "IT & Digitalization",
-      "Supply Chain Management",
-    ],
-  },
-  {
-    key: "status",
-    label: "Status Kehadiran",
-    placeholder: "-- Semua Status --",
-    options: ["Hadir", "Terlambat", "Tidak Hadir"],
-  },
-  {
-    key: "shift",
-    label: "Shift",
-    placeholder: "-- Semua Shift --",
-    options: ["1", "2"],
-  },
-  {
-    key: "employeeType",
-    label: "Jenis Karyawan",
-    placeholder: "-- Semua --",
-    options: ["Tetap", "Kontrak", "Harian"],
-  },
-];
+const ALL = "__all__";
+
+type SelectKey = "area" | "location" | "group" | "department" | "status" | "shift" | "employeeType";
 
 type Props = {
   filters: AttendanceFilters;
-  onSet: (key: keyof AttendanceFilters, value: string) => void;
-  onApply: () => void;
-  onReset: () => void;
+  options: AttendanceFilterOptions;
 };
 
-export function FilterBar({ filters, onSet, onApply, onReset }: Props) {
+/** Filter disimpan di URL; "Terapkan" = navigasi ke URL baru → server query ulang. */
+export function FilterBar({ filters, options }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [pending, setPending] = useState<AttendanceFilters>(filters);
+  const [loading, startTransition] = useTransition();
+
+  const set = <K extends keyof AttendanceFilters>(key: K, value: AttendanceFilters[K]) =>
+    setPending((prev) => ({ ...prev, [key]: value }));
+
+  const navigate = (next: AttendanceFilters) => {
+    setPending(next);
+    startTransition(() => {
+      router.push(`${pathname}?${toSearchParams(next)}`, { scroll: false });
+    });
+  };
+
+  // Opsi berjenjang: lokasi mengikuti area, departemen mengikuti group.
+  const locations = useMemo(
+    () =>
+      pending.area
+        ? options.locations.filter((l) => l.areaId === pending.area)
+        : options.locations,
+    [options.locations, pending.area],
+  );
+  const departments = useMemo(
+    () =>
+      pending.group
+        ? options.departments.filter((d) => d.groupId === pending.group)
+        : options.departments,
+    [options.departments, pending.group],
+  );
+
+  const fields: {
+    key: SelectKey;
+    label: string;
+    placeholder: string;
+    options: SelectOption[];
+    onChange?: (v: string) => void;
+  }[] = [
+    {
+      key: "area",
+      label: "Area",
+      placeholder: "-- Semua Area --",
+      options: options.areas,
+      onChange: (v) => setPending((p) => ({ ...p, area: v, location: "" })),
+    },
+    { key: "location", label: "Lokasi", placeholder: "-- Semua Lokasi --", options: locations },
+    {
+      key: "group",
+      label: "Group Departemen",
+      placeholder: "-- Semua Group --",
+      options: options.groups,
+      onChange: (v) => setPending((p) => ({ ...p, group: v, department: "" })),
+    },
+    {
+      key: "department",
+      label: "Departemen",
+      placeholder: "-- Semua Departemen --",
+      options: departments,
+    },
+    {
+      key: "status",
+      label: "Status Kehadiran",
+      placeholder: "-- Semua Status --",
+      options: ATTENDANCE_STATUSES.map((s) => ({ value: s, label: s })),
+    },
+    { key: "shift", label: "Shift", placeholder: "-- Semua Shift --", options: options.shifts },
+    {
+      key: "employeeType",
+      label: "Status Karyawan",
+      placeholder: "-- Semua --",
+      options: options.employeeTypes,
+    },
+  ];
+
   return (
-    <div className="rounded-xl border bg-card p-4">
+    <form
+      className="rounded-xl border bg-card p-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        navigate({ ...pending, page: 1 });
+      }}
+    >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Tanggal Dinas">
-          <Input
-            value={filters.dateRange || "16/10/2026 - 16/10/2026"}
-            onChange={(e) => onSet("dateRange", e.target.value)}
-          />
+        <Field label={`Tanggal Dinas (maks. ${MAX_RANGE_DAYS} hari)`}>
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="date"
+              value={pending.from}
+              max={pending.to}
+              onChange={(e) => e.target.value && set("from", e.target.value)}
+            />
+            <span className="text-xs text-muted-foreground">s/d</span>
+            <Input
+              type="date"
+              value={pending.to}
+              min={pending.from}
+              onChange={(e) => e.target.value && set("to", e.target.value)}
+            />
+          </div>
         </Field>
 
-        {SELECT_FIELDS.map((s) => (
-          <Field key={s.key} label={s.label}>
-            <Select
-              value={filters[s.key] || ""}
-              onValueChange={(v) => onSet(s.key, !v || v === "__all__" ? "" : v)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={s.placeholder} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">{s.placeholder}</SelectItem>
-                {s.options.map((o) => (
-                  <SelectItem key={o} value={o}>
-                    {o}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        ))}
+        {fields.map((f) => {
+          const items = [{ value: ALL, label: f.placeholder }, ...f.options];
+          return (
+            <Field key={f.key} label={f.label}>
+              <Select
+                items={items}
+                value={pending[f.key] || ALL}
+                onValueChange={(v) => {
+                  const value = !v || v === ALL ? "" : String(v);
+                  if (f.onChange) f.onChange(value);
+                  else set(f.key, value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {items.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          );
+        })}
 
         <Field label="NIK / Nama">
           <div className="relative">
@@ -118,24 +168,35 @@ export function FilterBar({ filters, onSet, onApply, onReset }: Props) {
             <Input
               className="pl-9"
               placeholder="Cari NIK atau Nama Karyawan..."
-              value={filters.searchQuery}
-              onChange={(e) => onSet("searchQuery", e.target.value)}
+              value={pending.q}
+              onChange={(e) => set("q", e.target.value)}
             />
           </div>
         </Field>
 
         <div className="flex items-end gap-2">
-          <Button size="sm" className="gap-2" onClick={onApply}>
-            <Search className="h-4 w-4" />
+          <Button type="submit" size="sm" className="gap-2" disabled={loading}>
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
             Terapkan Filter
           </Button>
-          <Button size="sm" variant="outline" className="gap-2" onClick={onReset}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            disabled={loading}
+            onClick={() => navigate({ ...defaultFilters(), pageSize: filters.pageSize })}
+          >
             <RotateCcw className="h-4 w-4" />
             Reset
           </Button>
         </div>
       </div>
-    </div>
+    </form>
   );
 }
 

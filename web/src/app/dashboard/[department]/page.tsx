@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { getDepartment, getItemsByDepartment } from "@/lib/data";
+import { getDepartment, getItemsByDepartment } from "@/lib/queries/navigation";
 import { DashboardItemCard } from "@/components/dashboard/dashboard-item-card";
 
 export default async function DepartmentOverviewPage({
@@ -10,9 +10,11 @@ export default async function DepartmentOverviewPage({
   params: Promise<{ department: string }>;
 }) {
   const { department: slug } = await params;
-  const dept = getDepartment(slug);
+  const [dept, items] = await Promise.all([
+    getDepartment(slug),
+    getItemsByDepartment(slug),
+  ]);
   if (!dept) notFound();
-  const items = getItemsByDepartment(slug);
 
   return (
     <div className="space-y-4">
@@ -31,9 +33,15 @@ export default async function DepartmentOverviewPage({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
-          <DashboardItemCard key={item.slug} item={item} />
+          <DashboardItemCard key={item.id} item={item} />
         ))}
       </div>
+
+      {items.length === 0 && (
+        <div className="rounded-xl border border-dashed bg-card py-12 text-center text-sm text-muted-foreground">
+          Belum ada dashboard untuk group ini.
+        </div>
+      )}
     </div>
   );
 }

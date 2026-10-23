@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
-import { attendanceTrend } from "@/lib/data";
+import type { AttendanceTrend } from "@/lib/types";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-const options: ApexOptions = {
+const baseOptions: ApexOptions = {
   chart: {
     type: "line",
     toolbar: { show: false },
@@ -36,13 +36,12 @@ const options: ApexOptions = {
   },
   markers: { size: [0, 4, 4] },
   xaxis: {
-    categories: attendanceTrend.labels,
     axisBorder: { show: false },
     axisTicks: { show: false },
     labels: { style: { fontSize: "11px" } },
   },
   yaxis: {
-    max: 1500,
+    min: 0,
     tickAmount: 5,
     labels: { formatter: (v) => Math.round(v).toString() },
   },
@@ -59,16 +58,24 @@ const options: ApexOptions = {
   },
 };
 
-const series: ApexOptions["series"] = [
-  { name: "Hadir", type: "column", data: attendanceTrend.hadir },
-  { name: "Terlambat", type: "line", data: attendanceTrend.terlambat },
-  { name: "Tidak Hadir", type: "line", data: attendanceTrend.tidakHadir },
-];
+export function AttendanceTrendChart({ trend }: { trend: AttendanceTrend }) {
+  const options: ApexOptions = {
+    ...baseOptions,
+    xaxis: { ...baseOptions.xaxis, categories: trend.labels },
+  };
+  const series: ApexOptions["series"] = [
+    { name: "Hadir", type: "column", data: trend.hadir },
+    { name: "Terlambat", type: "line", data: trend.terlambat },
+    { name: "Tidak Hadir", type: "line", data: trend.tidakHadir },
+  ];
+  const first = trend.labels[0];
+  const last = trend.labels[trend.labels.length - 1];
 
-export function AttendanceTrendChart() {
   return (
     <div>
-      <h3 className="text-sm font-semibold">Tren Kehadiran 7 Hari Terakhir</h3>
+      <h3 className="text-sm font-semibold">
+        Tren Kehadiran {first === last ? first : `${first} – ${last}`}
+      </h3>
       <Chart options={options} series={series} type="line" height={300} />
     </div>
   );

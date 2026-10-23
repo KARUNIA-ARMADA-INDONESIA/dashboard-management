@@ -2,63 +2,88 @@
 
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
-import { attendanceDistribution } from "@/lib/data";
+import type { AttendanceDashboardData, AttendanceStatus } from "@/lib/types";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-const colors = ["#22c55e", "#f59e0b", "#ef4444", "#94a3b8"];
+export const statusColor: Record<AttendanceStatus, string> = {
+  Hadir: "#22c55e",
+  Terlambat: "#f59e0b",
+  "Tidak Hadir": "#ef4444",
+  Cuti: "#3b82f6",
+  Sakit: "#a855f7",
+  Libur: "#94a3b8",
+};
 
-const options: ApexOptions = {
-  chart: {
-    type: "donut",
-    toolbar: { show: false },
-    fontFamily: "inherit",
-  },
-  labels: attendanceDistribution.segments.map((s) => s.label),
-  colors,
-  legend: { show: false },
-  dataLabels: { enabled: false },
-  plotOptions: {
-    pie: {
-      donut: {
-        size: "72%",
-        labels: {
-          show: true,
-          total: {
+type Props = {
+  distribution: AttendanceDashboardData["distribution"];
+  title: string;
+};
+
+export function AttendanceDonutChart({ distribution, title }: Props) {
+  const { segments, total } = distribution;
+  const colors = segments.map((s) => statusColor[s.label]);
+
+  const options: ApexOptions = {
+    chart: {
+      type: "donut",
+      toolbar: { show: false },
+      fontFamily: "inherit",
+    },
+    labels: segments.map((s) => s.label),
+    colors,
+    legend: { show: false },
+    dataLabels: { enabled: false },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "72%",
+          labels: {
             show: true,
-            label: "Total Karyawan",
-            fontSize: "11px",
-            color: "#6b7280",
-            formatter: () => attendanceDistribution.total.toLocaleString("id-ID"),
-          },
-          value: {
-            fontSize: "22px",
-            fontWeight: 700,
+            total: {
+              show: true,
+              label: "Total Data",
+              fontSize: "11px",
+              color: "#6b7280",
+              formatter: () => total.toLocaleString("id-ID"),
+            },
+            value: {
+              fontSize: "22px",
+              fontWeight: 700,
+            },
           },
         },
       },
     },
-  },
-  stroke: { colors: ["#ffffff"], width: 2 },
-};
+    stroke: { colors: ["#ffffff"], width: 2 },
+  };
 
-const series = attendanceDistribution.segments.map((s) => s.value);
-
-export function AttendanceDonutChart() {
   return (
     <div>
-      <h3 className="text-sm font-semibold">Distribusi Kehadiran Hari Ini</h3>
-      <div className="mt-3 flex items-center gap-4">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <div className="mt-3 flex flex-wrap items-center gap-4">
         <div className="relative shrink-0">
-          <Chart options={options} series={series} type="donut" height={220} width={220} />
+          {total > 0 ? (
+            <Chart
+              options={options}
+              series={segments.map((s) => s.value)}
+              type="donut"
+              height={220}
+              width={220}
+            />
+          ) : (
+            <div className="flex h-[220px] w-[220px] items-center justify-center rounded-full border-8 border-muted text-xs text-muted-foreground">
+              Tidak ada data
+            </div>
+          )}
         </div>
         <ul className="flex flex-1 flex-col gap-3">
-          {attendanceDistribution.segments.map((s, i) => (
+          {segments.map((s) => (
             <li key={s.label} className="flex items-center justify-between gap-2 text-xs">
               <span className="flex items-center gap-2">
                 <span
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ background: colors[i] }}
+                  style={{ background: statusColor[s.label] }}
                 />
                 <span className="text-muted-foreground">{s.label}</span>
               </span>

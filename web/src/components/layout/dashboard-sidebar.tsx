@@ -5,8 +5,8 @@ import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { departmentIconMap } from "@/lib/data";
-import type { DashboardItem, Department } from "@/lib/types";
+import { departmentIconMap } from "@/lib/icons";
+import { isFeatureAvailable, type DashboardItem, type Department } from "@/lib/types";
 
 type Props = {
   department: Department;
@@ -27,9 +27,22 @@ function SidebarLinks({
       {items.map((item) => {
         const href = `/dashboard/${department.slug}/${item.slug}`;
         const active = pathname === href;
+        if (!isFeatureAvailable(item)) {
+          return (
+            <span
+              key={item.id}
+              aria-disabled
+              title="Segera hadir"
+              className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground/50"
+            >
+              <span className="truncate">{item.title}</span>
+              <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px]">Segera</span>
+            </span>
+          );
+        }
         return (
           <Link
-            key={item.slug}
+            key={item.id}
             href={href}
             className={cn(
               "relative rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted",
@@ -50,7 +63,7 @@ function SidebarLinks({
 }
 
 export function DashboardSidebar({ department, items }: Props) {
-  const Icon = departmentIconMap[department.iconName];
+  const Icon = departmentIconMap[department.iconName] ?? departmentIconMap.Building2;
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r bg-card md:flex">
@@ -65,7 +78,7 @@ export function DashboardSidebar({ department, items }: Props) {
         <Suspense
           fallback={items.map((item) => (
             <div
-              key={item.slug}
+              key={item.id}
               className="rounded-md px-3 py-2 text-sm text-muted-foreground"
             >
               {item.title}
@@ -82,7 +95,7 @@ export function DashboardSidebar({ department, items }: Props) {
           className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          Kembali ke Departemen
+          Kembali ke Beranda
         </Link>
       </div>
     </aside>

@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LayoutDashboard, Search, X } from "lucide-react";
-import { departments, dashboardItems } from "@/lib/data";
+import { ArrowRight, LayoutDashboard, Loader2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { featureKey, useFavorites } from "@/lib/hooks/use-favorites";
+import { isFeatureAvailable, type NavigationData } from "@/lib/types";
 
 type SearchResult = {
   type: "department" | "item";
@@ -23,6 +24,32 @@ export function CommandPalette({ open, onClose }: Props) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { isFavorite } = useFavorites();
+  const [nav, setNav] = useState<NavigationData | null>(null);
+  const [navError, setNavError] = useState(false);
+
+  // Ambil daftar group & fitur dari DB saat pertama kali dibuka
+  useEffect(() => {
+    if (!open || nav) return;
+    let cancelled = false;
+    fetch("/api/navigation")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<NavigationData>;
+      })
+      .then((data) => {
+        if (!cancelled) {
+          setNav(data);
+          setNavError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setNavError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, nav]);
 
   // Focus input when opened
   useEffect(() => {
@@ -42,17 +69,22 @@ export function CommandPalette({ open, onClose }: Props) {
   }, [onClose]);
 
   const results = useMemo<SearchResult[]>(() => {
+    if (!nav) return [];
+    // Hanya fitur yang sudah tersedia + group yang punya fitur tersedia
+    const dashboardItems = nav.items.filter(isFeatureAvailable);
+    const departments = nav.departments.filter((d) => d.availableCount > 0);
+    const deptName = new Map(departments.map((d) => [d.slug, d.name]));
     const q = query.trim().toLowerCase();
     if (!q) {
-      // Show recent / popular items when empty
-      return dashboardItems
-        .filter((i) => i.favorite)
+      // Favorit dulu, lalu fitur lain
+      const favs = dashboardItems.filter((i) => isFavorite(featureKey(i.departmentSlug, i.slug)));
+      return (favs.length ? favs : dashboardItems)
         .slice(0, 6)
         .map((item) => ({
           type: "item" as const,
           slug: item.slug,
           title: item.title,
-          subtitle: `${item.category} · ${item.departmentSlug.replace(/-/g, " ")}`,
+          subtitle: `${item.category} · ${deptName.get(item.departmentSlug) ?? item.departmentSlug}`,
           href: `/dashboard/${item.departmentSlug}/${item.slug}`,
         }));
     }
@@ -61,7 +93,8 @@ export function CommandPalette({ open, onClose }: Props) {
       .filter(
         (d) =>
           d.name.toLowerCase().includes(q) ||
-          d.description.toLowerCase().includes(q),
+          d.description.toLowerCase().includes(q) ||
+          d.departmentNames.some((n) => n.toLowerCase().includes(q)),
       )
       .slice(0, 3)
       .map((d) => ({
@@ -84,12 +117,12 @@ export function CommandPalette({ open, onClose }: Props) {
         type: "item",
         slug: item.slug,
         title: item.title,
-        subtitle: `${item.category} · ${item.departmentSlug.replace(/-/g, " ")}`,
+        subtitle: `${item.category} · ${deptName.get(item.departmentSlug) ?? item.departmentSlug}`,
         href: `/dashboard/${item.departmentSlug}/${item.slug}`,
       }));
 
     return [...deptResults, ...itemResults].slice(0, 10);
-  }, [query]);
+  }, [nav, query, isFavorite]);
 
   const navigate = (href: string) => {
     router.push(href);
@@ -135,7 +168,17 @@ export function CommandPalette({ open, onClose }: Props) {
 
         {/* Results */}
         <div className="max-h-[60vh] overflow-y-auto p-2">
-          {results.length === 0 ? (
+          {!nav ? (
+            <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+              {navError ? (
+                "Gagal memuat data. Coba tutup dan buka lagi."
+              ) : (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Memuat...
+                </>
+              )}
+            </div>
+          ) : results.length === 0 ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
               Tidak ada hasil untuk &ldquo;{query}&rdquo;
             </div>
@@ -143,7 +186,7 @@ export function CommandPalette({ open, onClose }: Props) {
             <>
               {query === "" && (
                 <p className="px-3 py-2 text-xs font-medium text-muted-foreground">
-                  Dashboard Favorit
+                  Dashboard
                 </p>
               )}
               <ul>

@@ -5,6 +5,7 @@ import type { DashboardItem, Department } from "@/lib/types";
 type Props = {
   department: Department;
   item: DashboardItem;
+  lastUpdated: string;
 };
 
 const categoryConfig = {
@@ -34,7 +35,7 @@ const categoryConfig = {
   },
 };
 
-export function FeaturePlaceholder({ department, item }: Props) {
+export function FeaturePlaceholder({ department, item, lastUpdated }: Props) {
   const config = categoryConfig[item.category];
   const Icon = config.icon;
 
@@ -43,7 +44,7 @@ export function FeaturePlaceholder({ department, item }: Props) {
       <DashboardHeader
         department={department}
         item={item}
-        lastUpdated="16 Okt 2026 14:57:32 WIB"
+        lastUpdated={lastUpdated}
       />
 
       {/* Coming Soon Card */}
