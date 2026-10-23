@@ -438,9 +438,9 @@
     "semantic_hash": ""
   },
   "web/src/lib/db.ts": {
-    "mtime": 1792651782.570129,
-    "seen": 1792716469.0123963,
-    "ast_hash": "02259a5d2932ba490c7c6034747e0333",
+    "mtime": 1792716735.6475875,
+    "seen": 1792717312.9992723,
+    "ast_hash": "045e24562b567e9854b84da7e2b35861",
     "semantic_hash": ""
   },
   "web/src/lib/hooks/local-storage-store.ts": {
@@ -468,9 +468,9 @@
     "semantic_hash": ""
   },
   "web/src/lib/queries/navigation.ts": {
-    "mtime": 1792715795.2153778,
-    "seen": 1792716469.0124028,
-    "ast_hash": "03dce13df013447dadc6f48ff4530de4",
+    "mtime": 1792716746.021062,
+    "seen": 1792717312.9992783,
+    "ast_hash": "9850c0837313584638017d29fe01b2f4",
     "semantic_hash": ""
   },
   "web/src/lib/queries/sql.ts": {
@@ -480,9 +480,9 @@
     "semantic_hash": ""
   },
   "knowledge/notes/db-development-schema-and-dashboard-data-rules.md": {
-    "mtime": 1792716458.0983956,
-    "seen": 1792716469.0130267,
-    "ast_hash": "eeccb9e1346f7a08a2072f6fb09403f7",
+    "mtime": 1792716783.4638546,
+    "seen": 1792717312.9992862,
+    "ast_hash": "ae04e3589446b4acb96c9b0a549e8961",
     "semantic_hash": ""
   },
   "knowledge/notes/prisma-7-setup-quirks.md": {
