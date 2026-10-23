@@ -47,8 +47,10 @@ Flow UI telah selesai diimplementasikan berdasarkan 3 referensi gambar:
 | Mock Data Komprehensif | ✅ Selesai | 9 departemen, 30+ fitur dashboard, log kehadiran |
 | Perbaikan Error Build & TypeScript | ✅ Selesai | `asChild`, Suspense boundary Next.js 16 |
 | Production Build (`npm run build`) | ✅ Berhasil | Semua route dikompilasi tanpa error |
-| Setup Database & ORM | 🔵 Siap (Tahap 2) | Prisma schema, `.env`, PostgreSQL |
-| API Route Backend | ⏳ Belum Dibuat | Masih menggunakan mock data lokal |
+| Setup Database & ORM | ✅ Siap | Prisma 7.10.1 + `@prisma/adapter-pg`, `prisma.config.ts`, `src/lib/db.ts`, `/api/health/db` — menunggu kredensial server |
+| Integrasi Data PostgreSQL | ✅ Selesai | Group (`ms_group_department`), departemen, karyawan, absen (`tr_absens`), lembur (`tr_overtime`) — mock data dihapus |
+| Tabel `ms_dashboard_features` | 🟡 Menunggu | Script `web/prisma/scripts/001_create_ms_dashboard_features.sql` perlu dijalankan di server primary |
+| API Route Backend | ✅ Selesai | `/api/health/db`, `/api/navigation`, `/api/attendance/export` |
 | Autentikasi | ⏸ Ditunda | Belum diperlukan di fase ini |
 
 ---
