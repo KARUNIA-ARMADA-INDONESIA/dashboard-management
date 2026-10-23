@@ -1,0 +1,15 @@
+{
+  "0": "knowledge.py",
+  "1": "package.json",
+  "2": "types.ts",
+  "3": "windows-environment-setup.md",
+  "4": "dependencies",
+  "5": "db.ts",
+  "6": "devDependencies",
+  "7": "scripts",
+  "8": "page-loading.tsx",
+  "9": "home-shortcuts.tsx",
+  "10": "navigation.ts",
+  "11": "attendance.ts",
+  "12": "dashboard/layout.tsx"
+}

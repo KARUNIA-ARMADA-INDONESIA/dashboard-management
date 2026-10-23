@@ -1,15 +1,19 @@
 {
   "0": "knowledge.py",
   "1": "package.json",
-  "2": "types.ts",
+  "2": "attendance-filters.ts",
   "3": "windows-environment-setup.md",
   "4": "dependencies",
   "5": "db.ts",
   "6": "devDependencies",
   "7": "scripts",
   "8": "page-loading.tsx",
-  "9": "home-shortcuts.tsx",
+  "9": "types.ts",
   "10": "navigation.ts",
   "11": "attendance.ts",
-  "12": "dashboard/layout.tsx"
+  "12": "dashboard/layout.tsx",
+  "13": "Progress Project KARUNIA Management Dashboard",
+  "14": "react",
+  "15": "db-development-schema-and-dashboard-data-rules.md",
+  "16": "prisma-7-setup-quirks.md"
 }
