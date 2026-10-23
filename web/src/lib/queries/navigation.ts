@@ -136,16 +136,22 @@ export async function getItem(
 /** Waktu data absen terakhir masuk/diubah, dipakai sebagai "Terakhir Diperbarui". */
 export const getLastUpdated = cache(
   async (): Promise<{ date: string; time: string; label: string }> => {
-    const [row] = await prisma.$queryRaw<{ date: string | null; time: string | null }[]>`
-      SELECT
-        to_char(t, 'DD Mon YYYY') AS date,
-        to_char(t, 'HH24:MI:SS') AS time
-      FROM (
-        SELECT max(COALESCE(updated_at, created_at)) AS t
-        FROM tr_absens
-        WHERE deleted_at IS NULL AND COALESCE(updated_at, created_at) <= now() + interval '1 day'
-      ) x
-    `;
+    let row: { date: string | null; time: string | null } | undefined;
+    try {
+      [row] = await prisma.$queryRaw<{ date: string | null; time: string | null }[]>`
+        SELECT
+          to_char(t, 'DD Mon YYYY') AS date,
+          to_char(t, 'HH24:MI:SS') AS time
+        FROM (
+          SELECT max(COALESCE(updated_at, created_at)) AS t
+          FROM tr_absens
+          WHERE deleted_at IS NULL AND COALESCE(updated_at, created_at) <= now() + interval '1 day'
+        ) x
+      `;
+    } catch (error) {
+      // Info kosmetik — jangan gagalkan seluruh halaman.
+      console.warn("[getLastUpdated] gagal membaca waktu update terakhir:", error);
+    }
     const date = row?.date ?? "-";
     const time = row?.time ? `${row.time} ${APP_TIMEZONE_LABEL}` : "";
     return { date, time, label: time ? `${date} ${time}` : date };
